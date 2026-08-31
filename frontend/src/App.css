@@ -1,0 +1,658 @@
+:root {
+  --background: #f8f6f2;
+  --surface: #fffdfa;
+  --text: #292724;
+  --muted: #77716a;
+  --accent: #9a7b4f;
+  --border: #e5dfd7;
+  --error: #9b4d4d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--background);
+  color: var(--text);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+}
+
+button,
+textarea {
+  font-family: inherit;
+}
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+.landing-page {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+
+  background:
+    radial-gradient(circle at 50% 0%,
+      rgba(255, 255, 255, 0.8),
+      transparent 42%),
+    var(--background);
+}
+
+.hero {
+  width: 100%;
+  max-width: 760px;
+
+  padding: 48px 24px 60px;
+
+  text-align: center;
+}
+
+/* ============================================================
+   BRAND
+   ============================================================ */
+
+.cross {
+  color: var(--accent);
+
+  font-size: 27px;
+  line-height: 1;
+
+  margin-bottom: 20px;
+
+  opacity: 0.9;
+}
+
+.brand {
+  margin: 0 0 30px;
+
+  color: #81786e;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  letter-spacing: 5px;
+}
+
+/* ============================================================
+   HERO TITLE
+   ============================================================ */
+
+h1 {
+  margin: 0;
+
+  font-size: clamp(48px, 7vw, 72px);
+
+  font-weight: 400;
+
+  line-height: 0.98;
+
+  letter-spacing: -2px;
+}
+
+.subtitle {
+  margin: 28px 0 38px;
+
+  color: var(--muted);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 15px;
+
+  line-height: 1.7;
+}
+
+/* ============================================================
+   ANSWER BOX
+   ============================================================ */
+
+.answer-box {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  width: 100%;
+}
+
+.textarea-wrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+textarea {
+  display: block;
+
+  width: 100%;
+
+  min-height: 116px;
+
+  padding: 20px 20px 40px;
+
+  resize: none;
+
+  border: 1px solid var(--border);
+
+  border-radius: 15px;
+
+  background: rgba(255, 253, 250, 0.88);
+
+  color: var(--text);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+  outline: none;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+textarea::placeholder {
+  color: #aaa39a;
+}
+
+textarea:focus {
+  border-color: #cbbba5;
+
+  background: #fffdfa;
+
+  box-shadow:
+    0 0 0 3px rgba(154, 123, 79, 0.07),
+    0 8px 30px rgba(70, 60, 45, 0.04);
+}
+
+textarea:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   CHARACTER COUNT
+   ============================================================ */
+
+.character-count {
+  position: absolute;
+
+  right: 15px;
+  bottom: 12px;
+
+  color: #aaa39a;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 11px;
+
+  letter-spacing: 0.2px;
+
+  pointer-events: none;
+
+  transition: color 0.2s ease;
+}
+
+.textarea-wrapper:focus-within .character-count {
+  color: #9a8b7a;
+}
+
+/* ============================================================
+   FIND BUTTON
+   ============================================================ */
+
+.find-button {
+  margin-top: 18px;
+
+  padding: 13px 27px;
+
+  border: none;
+
+  border-radius: 30px;
+
+  background: #292724;
+
+  color: white;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.find-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.find-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.find-button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.6;
+}
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.error {
+  margin: 16px 0 0;
+
+  color: var(--error);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 13px;
+}
+
+/* ============================================================
+   RESPONSE
+   ============================================================ */
+
+.response {
+  margin-top: 26px;
+
+  padding: 27px 30px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 16px;
+
+  background: rgba(255, 253, 250, 0.9);
+
+  text-align: center;
+
+  animation:
+    responseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.response-icon {
+  margin-bottom: 13px;
+
+  color: var(--accent);
+
+  font-size: 15px;
+
+  opacity: 0.75;
+}
+
+.response-text {
+  margin: 0;
+
+  color: #59534c;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 14px;
+
+  line-height: 1.75;
+}
+
+/* ============================================================
+   SCRIPTURE
+   ============================================================ */
+
+.scripture {
+  margin-top: 20px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid var(--border);
+}
+
+.scripture-text {
+  margin: 0;
+
+  color: #514b44;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 15px;
+
+  font-style: italic;
+
+  line-height: 1.75;
+}
+
+.scripture-reference {
+  display: block;
+
+  margin-top: 10px;
+
+  color: #8b8176;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 12px;
+}
+
+/* ============================================================
+   BEGIN AGAIN
+   ============================================================ */
+
+.begin-again {
+  margin-top: 23px;
+
+  padding: 11px 22px;
+
+  border: 1px solid #ddd4c9;
+
+  border-radius: 25px;
+
+  background: transparent;
+
+  color: #776e65;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  opacity: 0;
+
+  animation:
+    beginAgainIn 0.55s 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.begin-again:hover {
+  background: #f4f0ea;
+
+  border-color: #cfc4b6;
+
+  color: #5f574f;
+
+  transform: translateY(-1px);
+}
+
+.begin-again:active {
+  transform: translateY(0);
+}
+
+/* ============================================================
+   FOOTER VERSE
+   ============================================================ */
+
+.verse {
+  margin-top: 58px;
+
+  color: #91877c;
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.verse p {
+  margin: 0;
+
+  font-size: 14px;
+
+  font-style: italic;
+
+  line-height: 1.6;
+}
+
+.verse span {
+  display: block;
+
+  margin-top: 8px;
+
+  color: #aaa096;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 11px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes responseIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0) scale(1);
+  }
+}
+
+@keyframes beginAgainIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .hero {
+    padding: 32px 18px 45px;
+  }
+
+  .cross {
+    font-size: 25px;
+
+    margin-bottom: 17px;
+  }
+
+  .brand {
+    margin-bottom: 25px;
+
+    font-size: 11px;
+
+    letter-spacing: 4px;
+  }
+
+  h1 {
+    font-size: 48px;
+
+    letter-spacing: -1.5px;
+  }
+
+  .subtitle {
+    margin-top: 22px;
+
+    font-size: 14px;
+  }
+
+  .subtitle br {
+    display: none;
+  }
+
+  textarea {
+    min-height: 120px;
+
+    padding: 18px 18px 38px;
+  }
+
+  .character-count {
+    right: 13px;
+    bottom: 11px;
+  }
+
+  .response {
+    padding: 22px 20px;
+
+    border-radius: 15px;
+  }
+
+  .response-text {
+    font-size: 14px;
+  }
+
+  .scripture-text {
+    font-size: 14px;
+  }
+
+  .verse {
+    margin-top: 45px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   INITIAL PAGE LOAD ANIMATION
+   ============================================================ */
+
+.landing-page {
+  animation: pageLoad 0.8s ease-out both;
+}
+
+@keyframes pageLoad {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .landing-page {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   BEGIN AGAIN TRANSITION
+   ============================================================ */
+
+.hero.resetting {
+  animation: beginAgain 0.7s ease-out both;
+}
+
+@keyframes beginAgain {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .hero.resetting {
+    animation: none;
+  }
+}
