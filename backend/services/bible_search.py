@@ -740,3 +740,44 @@ CANDIDATES:
         )
 
         return selected
+
+        # ============================================================
+    # GET BIBLE CHAPTER
+    # ============================================================
+
+    def get_chapter(self, book, chapter):
+        """
+        Retrieve every verse from a specific Bible chapter.
+        """
+
+        results = self.collection.get(
+            where={
+                "$and": [
+                    {"book": book},
+                    {"chapter": chapter}
+                ]
+            },
+            include=[
+                "documents",
+                "metadatas"
+            ]
+        )
+
+        verses = []
+
+        for document, metadata in zip(
+            results["documents"],
+            results["metadatas"]
+        ):
+            verses.append({
+                "book": metadata["book"],
+                "chapter": metadata["chapter"],
+                "verse": metadata["verse"],
+                "text": document
+            })
+
+        verses.sort(
+            key=lambda verse: verse["verse"]
+        )
+
+        return verses

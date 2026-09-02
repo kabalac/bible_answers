@@ -19,6 +19,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+
   background: var(--background);
   color: var(--text);
 
@@ -48,7 +49,13 @@ textarea {
       rgba(255, 255, 255, 0.8),
       transparent 42%),
     var(--background);
+
+  animation: pageLoad 0.8s ease-out both;
 }
+
+/* ============================================================
+   HERO
+   ============================================================ */
 
 .hero {
   width: 100%;
@@ -57,6 +64,12 @@ textarea {
   padding: 48px 24px 60px;
 
   text-align: center;
+
+  /*
+    Important:
+    Keep the hero visually anchored during Begin Again.
+    We do NOT animate the entire hero anymore.
+  */
 }
 
 /* ============================================================
@@ -98,11 +111,9 @@ h1 {
   margin: 0;
 
   font-size: clamp(48px, 7vw, 72px);
-
   font-weight: 400;
 
   line-height: 0.98;
-
   letter-spacing: -2px;
 }
 
@@ -117,7 +128,6 @@ h1 {
     sans-serif;
 
   font-size: 15px;
-
   line-height: 1.7;
 }
 
@@ -127,9 +137,7 @@ h1 {
 
 .answer-box {
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
 
   width: 100%;
@@ -137,7 +145,6 @@ h1 {
 
 .textarea-wrapper {
   position: relative;
-
   width: 100%;
 }
 
@@ -145,7 +152,6 @@ textarea {
   display: block;
 
   width: 100%;
-
   min-height: 116px;
 
   padding: 20px 20px 40px;
@@ -153,11 +159,9 @@ textarea {
   resize: none;
 
   border: 1px solid var(--border);
-
   border-radius: 15px;
 
   background: rgba(255, 253, 250, 0.88);
-
   color: var(--text);
 
   font-family:
@@ -166,7 +170,6 @@ textarea {
     sans-serif;
 
   font-size: 15px;
-
   line-height: 1.6;
 
   outline: none;
@@ -174,7 +177,8 @@ textarea {
   transition:
     border-color 0.25s ease,
     box-shadow 0.25s ease,
-    background 0.25s ease;
+    background 0.25s ease,
+    opacity 0.45s ease;
 }
 
 textarea::placeholder {
@@ -193,8 +197,14 @@ textarea:focus {
 
 textarea:disabled {
   opacity: 0.7;
-
   cursor: not-allowed;
+}
+
+/*
+  During reset, gently bring the input back to full visibility.
+*/
+.hero.resetting textarea {
+  opacity: 0.7;
 }
 
 /* ============================================================
@@ -215,12 +225,13 @@ textarea:disabled {
     sans-serif;
 
   font-size: 11px;
-
   letter-spacing: 0.2px;
 
   pointer-events: none;
 
-  transition: color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    opacity 0.45s ease;
 }
 
 .textarea-wrapper:focus-within .character-count {
@@ -237,11 +248,9 @@ textarea:disabled {
   padding: 13px 27px;
 
   border: none;
-
   border-radius: 30px;
 
   background: #292724;
-
   color: white;
 
   font-family:
@@ -250,7 +259,6 @@ textarea:disabled {
     sans-serif;
 
   font-size: 13px;
-
   font-weight: 600;
 
   cursor: pointer;
@@ -274,7 +282,6 @@ textarea:disabled {
 
 .find-button:disabled {
   cursor: not-allowed;
-
   opacity: 0.6;
 }
 
@@ -305,15 +312,46 @@ textarea:disabled {
   padding: 27px 30px;
 
   border: 1px solid var(--border);
-
   border-radius: 16px;
 
   background: rgba(255, 253, 250, 0.9);
 
   text-align: center;
 
+  /*
+    Normal answer appearance.
+  */
+  opacity: 1;
+
+  transform:
+    translateY(0) scale(1);
+
   animation:
     responseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /*
+    Exit animation.
+  */
+  transition:
+    opacity 0.55s ease,
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+  Begin Again exit state.
+
+  The card disappears gently instead of being
+  removed instantly from the visual state.
+*/
+.response.resetting {
+  opacity: 0;
+
+  transform:
+    translateY(-8px) scale(0.975);
+
+  pointer-events: none;
+
+  animation: none;
 }
 
 .response-icon {
@@ -337,7 +375,6 @@ textarea:disabled {
     sans-serif;
 
   font-size: 14px;
-
   line-height: 1.75;
 }
 
@@ -364,7 +401,6 @@ textarea:disabled {
     serif;
 
   font-size: 15px;
-
   font-style: italic;
 
   line-height: 1.75;
@@ -395,11 +431,9 @@ textarea:disabled {
   padding: 11px 22px;
 
   border: 1px solid #ddd4c9;
-
   border-radius: 25px;
 
   background: transparent;
-
   color: #776e65;
 
   font-family:
@@ -408,7 +442,6 @@ textarea:disabled {
     sans-serif;
 
   font-size: 12px;
-
   font-weight: 600;
 
   cursor: pointer;
@@ -422,7 +455,20 @@ textarea:disabled {
     background 0.25s ease,
     border-color 0.25s ease,
     color 0.25s ease,
-    transform 0.25s ease;
+    transform 0.25s ease,
+    opacity 0.3s ease;
+}
+
+/*
+  The button itself disappears with the response.
+*/
+.response.resetting .begin-again {
+  opacity: 0;
+
+  transform:
+    translateY(-4px);
+
+  pointer-events: none;
 }
 
 .begin-again:hover {
@@ -448,16 +494,30 @@ textarea:disabled {
 
   color: #91877c;
 
+  opacity: 1;
+
+  transform: translateY(0);
+
   transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
+    opacity 0.45s ease,
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+  During Begin Again, hide the footer slightly.
+  This prevents it from suddenly appearing while
+  the response card is leaving.
+*/
+.verse.resetting {
+  opacity: 0;
+
+  transform: translateY(8px);
 }
 
 .verse p {
   margin: 0;
 
   font-size: 14px;
-
   font-style: italic;
 
   line-height: 1.6;
@@ -514,12 +574,27 @@ textarea:disabled {
   }
 }
 
+@keyframes pageLoad {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
 /* ============================================================
    MOBILE
    ============================================================ */
 
 @media (max-width: 600px) {
-
   .hero {
     padding: 32px 18px 45px;
   }
@@ -557,11 +632,13 @@ textarea:disabled {
   textarea {
     min-height: 120px;
 
-    padding: 18px 18px 38px;
+    padding:
+      18px 18px 38px;
   }
 
   .character-count {
     right: 13px;
+
     bottom: 11px;
   }
 
@@ -589,7 +666,6 @@ textarea:disabled {
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-
   html {
     scroll-behavior: auto;
   }
@@ -598,61 +674,138 @@ textarea:disabled {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+
     animation-iteration-count: 1 !important;
+
     transition-duration: 0.01ms !important;
   }
-}
 
-/* ============================================================
-   INITIAL PAGE LOAD ANIMATION
-   ============================================================ */
-
-.landing-page {
-  animation: pageLoad 0.8s ease-out both;
-}
-
-@keyframes pageLoad {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Respect users who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
   .landing-page {
     animation: none;
   }
 }
 
-/* ============================================================
-   BEGIN AGAIN TRANSITION
-   ============================================================ */
+/* THEME TOGGLE */
 
-.hero.resetting {
-  animation: beginAgain 0.7s ease-out both;
+.top-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
 }
 
-@keyframes beginAgain {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
 
-/* Respect reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .hero.resetting {
-    animation: none;
-  }
+.theme-icon {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.toggle-track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 20px;
+  background: var(--border);
+  transition: background 0.25s ease;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.25s ease;
+}
+
+.theme-toggle.dark .toggle-thumb {
+  transform: translateX(16px);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* DARK MODE */
+
+.landing-page.dark-mode {
+  --background: #1f1d1a;
+  --surface: #292622;
+  --text: #eee9e2;
+  --muted: #aaa198;
+  --accent: #c3a477;
+  --border: #443f38;
+  --error: #d88f8f;
+
+  transition:
+    background 0.4s ease,
+    color 0.4s ease;
+}
+
+.landing-page,
+.hero,
+.answer-box,
+.response,
+.scripture,
+textarea,
+.theme-toggle,
+.find-button,
+.begin-again {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+/* DARK MODE INPUT */
+
+.landing-page.dark-mode textarea {
+  background: #292622;
+  color: #eee9e2;
+  border-color: #443f38;
+}
+
+.landing-page.dark-mode textarea::placeholder {
+  color: #9d958b;
+}
+
+.landing-page.dark-mode .character-count {
+  color: #91887e;
+}
+
+.landing-page.dark-mode textarea:focus {
+  background: #2d2a26;
+  border-color: var(--accent);
+}
+
+.donate-button {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
 }

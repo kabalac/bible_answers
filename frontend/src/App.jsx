@@ -4,6 +4,7 @@ import "./App.css";
 const API_URL = "http://127.0.0.1:8000";
 
 function App() {
+  const [darkMode, setDarkMode] = useState(false);
   const [feeling, setFeeling] = useState("");
   const [response, setResponse] = useState("");
   const [scripture, setScripture] = useState(null);
@@ -72,9 +73,35 @@ function App() {
   };
 
   return (
-    <main className="landing-page">
+    <main className={`landing-page ${darkMode ? "dark-mode" : ""}`}>
       <section className={`hero ${isResetting ? "resetting" : ""}`}>
+        <div className="top-controls">
 
+          <button
+            className="donate-button"
+            onClick={() => {
+              alert("Please donate ₹1 to your nearby church.");
+            }}
+            title="Donate ₹1 to your nearby church"
+          >
+            Donate
+          </button>
+
+          <button
+            className={`theme-toggle ${darkMode ? "dark" : ""}`}
+            onClick={() => setDarkMode(!darkMode)}
+            aria-label="Toggle dark mode"
+          >
+            <span className="theme-icon">☀</span>
+
+            <span className="toggle-track">
+              <span className="toggle-thumb"></span>
+            </span>
+
+            <span className="theme-icon">☾</span>
+          </button>
+
+        </div>
         {/* Brand */}
         <div className="cross">✝</div>
 
@@ -98,8 +125,7 @@ function App() {
 
           <div className="textarea-wrapper">
             <textarea
-              placeholder="Tell us how you're feeling..."
-              rows="4"
+              placeholder="Tell us what's on your heart… e.g., I feel anxious about my future." rows="4"
               value={feeling}
               maxLength={500}
               onChange={(event) => {
@@ -131,7 +157,7 @@ function App() {
 
         {/* Response */}
         {response && (
-          <div className="response">
+          <div className={`response ${isResetting ? "resetting" : ""}`}>
 
             <div className="response-icon">✦</div>
 
@@ -164,7 +190,7 @@ function App() {
         )}
 
         {/* Footer Verse */}
-        <div className="verse">
+        <div className={`verse ${isResetting ? "resetting" : ""}`}>
           <p>
             "Your word is a lamp for my feet, a light on my path."
           </p>
