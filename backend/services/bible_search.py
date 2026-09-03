@@ -1,9 +1,14 @@
+import os
 import re
 
 import chromadb
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+from huggingface_hub import InferenceClient
 
 from services.llm_service import LLMService
+
+
+load_dotenv()
 
 
 class BibleSearch:
@@ -288,8 +293,20 @@ class BibleSearch:
 
         print("Loading Bible search service...")
 
-        self.model = SentenceTransformer(
-            "all-MiniLM-L6-v2"
+        hf_token = os.getenv("HF_TOKEN")
+
+        if not hf_token:
+            raise RuntimeError(
+                "HF_TOKEN is not configured."
+            )
+
+        self.embedding_client = InferenceClient(
+            provider="hf-inference",
+            api_key=hf_token
+        )
+
+        self.embedding_model = (
+            "sentence-transformers/all-MiniLM-L6-v2"
         )
 
         self.client = chromadb.PersistentClient(
@@ -389,9 +406,29 @@ class BibleSearch:
             expanded_query
         )
 
-        query_embedding = self.model.encode(
-            [expanded_query]
-        )[0].tolist()
+        query_embedding = self.embedding_client.feature_extraction(
+            expanded_query,
+            model=self.embedding_model
+        )
+
+        # Convert numpy arrays to regular Python lists
+        # when required by ChromaDB.
+        if hasattr(query_embedding, "tolist"):
+            query_embedding = query_embedding.tolist()
+
+        # Hugging Face feature extraction can return
+        # a 2D token-level embedding depending on the
+        # provider implementation. Convert it to a
+        # single sentence embedding if necessary.
+        if (
+            isinstance(query_embedding, list)
+            and query_embedding
+            and isinstance(query_embedding[0], list)
+        ):
+            query_embedding = [
+                sum(values) / len(values)
+                for values in zip(*query_embedding)
+            ]
 
         results = self.collection.query(
             query_embeddings=[query_embedding],
@@ -410,7 +447,6 @@ class BibleSearch:
             results["metadatas"][0],
             results["distances"][0],
         ):
-
             verses.append({
                 "book": metadata["book"],
                 "chapter": metadata["chapter"],
@@ -741,7 +777,7 @@ CANDIDATES:
 
         return selected
 
-        # ============================================================
+    # ============================================================
     # GET BIBLE CHAPTER
     # ============================================================
 
@@ -769,6 +805,7 @@ CANDIDATES:
             results["documents"],
             results["metadatas"]
         ):
+
             verses.append({
                 "book": metadata["book"],
                 "chapter": metadata["chapter"],
