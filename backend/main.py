@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from pathlib import Path
+
 from pydantic import BaseModel, field_validator
+
 from services.bible_search import BibleSearch
 from services.llm_service import LLMService
+
+
+
 
 
 # ============================================================
@@ -12,6 +20,26 @@ from services.llm_service import LLMService
 app = FastAPI(title="Bible Answers API")
 
 
+# ============================================================
+# FRONTEND
+# ============================================================
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=FRONTEND_DIST / "assets"),
+        name="assets"
+    )
+
+
+@app.get("/favicon.svg")
+def favicon():
+    return FileResponse(FRONTEND_DIST / "favicon.svg")
+
+    
 # ============================================================
 # CORS
 # ============================================================
@@ -195,11 +223,7 @@ def build_response(feeling, interpretation):
 
 @app.get("/")
 def root():
-
-    return {
-        "message": "Bible Answers backend is running."
-    }
-
+    return FileResponse(FRONTEND_DIST / "index.html")
 
 # ============================================================
 # MAIN ANSWER ENDPOINT
