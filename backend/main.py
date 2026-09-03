@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,field_validator
+from pydantic import BaseModel, field_validator
 from services.bible_search import BibleSearch
 from services.llm_service import LLMService
 
@@ -52,74 +52,6 @@ class FeelingRequest(BaseModel):
             raise ValueError("Your message is too long.")
 
         return value
-
-
-# ============================================================
-# INPUT VALIDATION
-# ============================================================
-
-UNSUPPORTED_PATTERNS = [
-    "write python code",
-    "write javascript code",
-    "write java code",
-    "write c++ code",
-    "debug my code",
-    "programming problem",
-    "solve this coding problem",
-    "stock price",
-    "weather today",
-    "cricket score",
-    "football score",
-]
-
-
-def is_supported_input(feeling):
-    """
-    Detect requests that are clearly outside
-    the purpose of Bible Answers.
-    """
-
-    text = feeling.lower().strip()
-
-    for pattern in UNSUPPORTED_PATTERNS:
-        if pattern in text:
-            return False
-
-    return True
-
-def looks_like_gibberish(text):
-    """
-    Detect very simple meaningless inputs such as:
-    hkqbedlnlq
-    asdfghjkl
-    qwertyuiop
-    """
-
-    text = text.lower().strip()
-
-    # Allow normal multi-word questions/sentences
-    words = text.split()
-
-    if len(words) >= 2:
-        return False
-
-    # Single-word input
-    word = words[0] if words else ""
-
-    # Very short words can be legitimate
-    if len(word) <= 3:
-        return False
-
-    # A simple vowel check
-    vowels = sum(1 for char in word if char in "aeiou")
-
-    vowel_ratio = vowels / len(word)
-
-    # Meaningless-looking long strings with no vowels
-    if vowel_ratio < 0.2:
-        return True
-
-    return False
 
 # ============================================================
 # RESPONSE VALIDATION
@@ -283,10 +215,6 @@ def get_answer(request: FeelingRequest):
         request.feeling
     )
 
-    print(
-        "INPUT CLASSIFICATION:",
-        classification
-    )
 
     if not classification or not classification["valid"]:
         return {
@@ -361,16 +289,6 @@ def get_answer(request: FeelingRequest):
         limit=30
     )
 
-    print("\nAPI CANDIDATES:")
-
-    for index, verse in enumerate(verses, start=1):
-
-        print(
-            f"{index}. "
-            f"{verse['book']} "
-            f"{verse['chapter']}:{verse['verse']} "
-            f"-> {verse['text']}"
-        )
 
     # --------------------------------------------------------
     # 2. Select the most appropriate verse
@@ -379,13 +297,6 @@ def get_answer(request: FeelingRequest):
     selected_verse = bible_search.select_best_verse(
         request.feeling,
         verses
-    )
-
-    print(
-        "API SELECTED:",
-        selected_verse["book"],
-        selected_verse["chapter"],
-        selected_verse["verse"]
     )
 
     # --------------------------------------------------------
@@ -397,10 +308,6 @@ def get_answer(request: FeelingRequest):
         selected_verse
     )
 
-    print(
-        "LLM INTERPRETATION:",
-        interpretation
-    )
 
     # --------------------------------------------------------
     # 4. Validate LLM interpretation
@@ -469,37 +376,4 @@ def search_bible(request: FeelingRequest):
     return {
         "feeling": request.feeling,
         "verses": verses
-    }
-
-# ============================================================
-# BIBLE CHAPTER TEST ENDPOINT
-# ============================================================
-
-@app.get("/test-chapter/{book}/{chapter}")
-def test_chapter(book: str, chapter: int):
-
-    verses = bible_search.get_chapter(
-        book,
-        chapter
-    )
-
-    return {
-        "book": book,
-        "chapter": chapter,
-        "verse_count": len(verses),
-        "verses": verses
-    }
-
-# ============================================================
-# BIBLE CHAPTER EXTRACTION TEST ENDPOINT
-# ============================================================
-
-@app.get("/test-extract-chapter")
-def test_extract_chapter(text: str):
-
-    result = llm.extract_chapter_reference(text)
-
-    return {
-        "input": text,
-        "extracted": result
     }
