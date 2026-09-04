@@ -14,7 +14,21 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isResetting, setIsResetting] = useState(false);
+  const [beginAgainCount, setBeginAgainCount] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const getDeviceType = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
 
+    if (/ipad|tablet/.test(userAgent)) {
+      return "tablet";
+    }
+
+    if (/android|iphone|ipod|mobile/.test(userAgent)) {
+      return "mobile";
+    }
+
+    return "desktop";
+  };
   // ============================================================
   // ANALYTICS — SESSION START
   // ============================================================
@@ -28,6 +42,7 @@ function App() {
       body: JSON.stringify({
         event: "session_started",
         session_id: sessionId,
+        device_type: getDeviceType(),
       }),
     }).catch((error) => {
       console.error("Analytics error:", error);
@@ -49,6 +64,23 @@ function App() {
     setScripture(null);
     setError("");
 
+    // Record when the answer request begins
+    const requestStartTime = performance.now();
+
+    // Analytics: answer requested
+    fetch(`${API_URL}/analytics`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "answer_requested",
+        session_id: sessionId,
+      }),
+    }).catch((error) => {
+      console.error("Analytics error:", error);
+    });
+
     try {
       const apiResponse = await fetch(`${API_URL}/answer`, {
         method: "POST",
@@ -68,6 +100,28 @@ function App() {
 
       setResponse(data.response);
       setScripture(data.scripture);
+
+      // Calculate response time
+      const responseTimeMs = Math.round(
+        performance.now() - requestStartTime
+      );
+
+      // Analytics: answer completed
+      fetch(`${API_URL}/analytics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "answer_completed",
+          session_id: sessionId,
+          response_time_ms: responseTimeMs,
+          category: data.analytics?.category || null,
+          scripture_reference: data.analytics?.scripture_reference || null,
+        }),
+      }).catch((error) => {
+        console.error("Analytics error:", error);
+      });
     } catch (error) {
       console.error(error);
 
@@ -78,7 +132,6 @@ function App() {
       setLoading(false);
     }
   };
-
   // ============================================================
   // KEYBOARD HANDLER
   // ============================================================
@@ -95,6 +148,40 @@ function App() {
   // ============================================================
 
   const beginAgain = () => {
+    const nextCount = beginAgainCount + 1;
+
+    setBeginAgainCount(nextCount);
+
+    // Analytics: every Begin Again
+    fetch(`${API_URL}/analytics`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "begin_again",
+        session_id: sessionId,
+      }),
+    }).catch((error) => {
+      console.error("Analytics error:", error);
+    });
+
+    // Analytics: third Begin Again reached
+    if (nextCount === 3) {
+      fetch(`${API_URL}/analytics`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "feedback_prompt_shown",
+          session_id: sessionId,
+        }),
+      }).catch((error) => {
+        console.error("Analytics error:", error);
+      });
+    }
+
     setIsResetting(true);
 
     setTimeout(() => {
@@ -103,6 +190,11 @@ function App() {
       setScripture(null);
       setError("");
       setIsResetting(false);
+
+      // Show feedback after the third Begin Again
+      if (nextCount === 3) {
+        setShowFeedback(true);
+      }
     }, 700);
   };
 
@@ -118,6 +210,19 @@ function App() {
           <button
             className="donate-button"
             onClick={() => {
+              fetch(`${API_URL}/analytics`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  event: "donate_clicked",
+                  session_id: sessionId,
+                }),
+              }).catch((error) => {
+                console.error("Analytics error:", error);
+              });
+
               alert("Please donate ₹1 to your nearby church.");
             }}
             title="Donate ₹1 to your nearby church"
@@ -234,6 +339,46 @@ function App() {
               Begin again
             </button>
 
+          </div>
+        )}
+        {/* Feedback */}
+
+        {showFeedback && (
+          <div className="feedback-card">
+            <p className="feedback-title">
+              How was your experience?
+            </p>
+
+            <p className="feedback-subtitle">
+              Your feedback helps us make Bible Answers better.
+            </p>
+
+            <div className="feedback-options">
+              <button
+                onClick={() => setShowFeedback(false)}
+              >
+                😊 Helpful
+              </button>
+
+              <button
+                onClick={() => setShowFeedback(false)}
+              >
+                😐 Okay
+              </button>
+
+              <button
+                onClick={() => setShowFeedback(false)}
+              >
+                🙁 Not helpful
+              </button>
+            </div>
+
+            <button
+              className="feedback-later"
+              onClick={() => setShowFeedback(false)}
+            >
+              Maybe later
+            </button>
           </div>
         )}
 

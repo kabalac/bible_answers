@@ -8,10 +8,7 @@ from pydantic import BaseModel, field_validator
 
 from services.bible_search import BibleSearch
 from services.llm_service import LLMService
-
-from analytics import init_analytics_db
-
-
+from analytics import init_analytics_db, track_event
 
 
 # ============================================================
@@ -40,7 +37,7 @@ if FRONTEND_DIST.exists():
 def favicon():
     return FileResponse(FRONTEND_DIST / "favicon.svg")
 
-    
+
 # ============================================================
 # CORS
 # ============================================================
@@ -63,6 +60,7 @@ init_analytics_db()
 bible_search = BibleSearch()
 llm = LLMService()
 
+
 # ============================================================
 # REQUEST MODEL
 # ============================================================
@@ -82,6 +80,16 @@ class FeelingRequest(BaseModel):
             raise ValueError("Your message is too long.")
 
         return value
+
+
+class AnalyticsEvent(BaseModel):
+    event: str
+    session_id: str | None = None
+    response_time_ms: int | None = None
+    device_type: str | None = None
+    category: str | None = None
+    scripture_reference: str | None = None
+
 
 # ============================================================
 # RESPONSE VALIDATION
@@ -227,20 +235,39 @@ def build_response(feeling, interpretation):
 def root():
     return FileResponse(FRONTEND_DIST / "index.html")
 
+
+# ============================================================
+# ANALYTICS
+# ============================================================
+
+@app.post("/analytics")
+def record_analytics(event: AnalyticsEvent):
+    track_event(
+        event=event.event,
+        session_id=event.session_id,
+        response_time_ms=event.response_time_ms,
+        device_type=event.device_type,
+        category=event.category,
+        scripture_reference=event.scripture_reference,
+    )
+
+    return {"status": "ok"}
+
+
 # ============================================================
 # MAIN ANSWER ENDPOINT
 # ============================================================
 
 @app.post("/answer")
 def get_answer(request: FeelingRequest):
-        # --------------------------------------------------------
+
+    # --------------------------------------------------------
     # 0. Validate user intent
     # --------------------------------------------------------
 
     classification = llm.classify_request(
         request.feeling
     )
-
 
     if not classification or not classification["valid"]:
         return {
@@ -250,11 +277,14 @@ def get_answer(request: FeelingRequest):
                 "questions, feelings, and reflections related "
                 "to the Bible."
             ),
-            "scripture": None
+            "scripture": None,
+            "analytics": {
+                "category": None,
+                "scripture_reference": None,
+            },
         }
 
-        # --------------------------------------------------------
-        # --------------------------------------------------------
+    # --------------------------------------------------------
     # Chapter summary request
     # --------------------------------------------------------
 
@@ -272,7 +302,11 @@ def get_answer(request: FeelingRequest):
                     "I couldn't identify the Bible chapter "
                     "you are asking about."
                 ),
-                "scripture": None
+                "scripture": None,
+                "analytics": {
+                    "category": "chapter_summary",
+                    "scripture_reference": None,
+                },
             }
 
         book = reference["book"]
@@ -291,7 +325,11 @@ def get_answer(request: FeelingRequest):
                     f"I couldn't find {book} chapter {chapter} "
                     "in the Bible."
                 ),
-                "scripture": None
+                "scripture": None,
+                "analytics": {
+                    "category": "chapter_summary",
+                    "scripture_reference": None,
+                },
             }
 
         # Generate concise chapter summary
@@ -304,8 +342,13 @@ def get_answer(request: FeelingRequest):
         return {
             "feeling": request.feeling,
             "response": summary,
-            "scripture": None
+            "scripture": None,
+            "analytics": {
+                "category": "chapter_summary",
+                "scripture_reference": f"{book} {chapter}",
+            },
         }
+
     # --------------------------------------------------------
     # 1. Retrieve candidate Bible verses
     # --------------------------------------------------------
@@ -314,7 +357,6 @@ def get_answer(request: FeelingRequest):
         request.feeling,
         limit=30
     )
-
 
     # --------------------------------------------------------
     # 2. Select the most appropriate verse
@@ -333,7 +375,6 @@ def get_answer(request: FeelingRequest):
         request.feeling,
         selected_verse
     )
-
 
     # --------------------------------------------------------
     # 4. Validate LLM interpretation
@@ -377,13 +418,29 @@ def get_answer(request: FeelingRequest):
     }
 
     # --------------------------------------------------------
-    # 8. Return API response
+    # 8. Build non-sensitive analytics information
+    # --------------------------------------------------------
+
+    category = classification["category"]
+
+    scripture_reference = (
+        f"{selected_verse['book']} "
+        f"{selected_verse['chapter']}:"
+        f"{selected_verse['verse']}"
+    )
+
+    # --------------------------------------------------------
+    # 9. Return API response
     # --------------------------------------------------------
 
     return {
         "feeling": request.feeling,
         "response": answer.strip(),
-        "scripture": scripture
+        "scripture": scripture,
+        "analytics": {
+            "category": category,
+            "scripture_reference": scripture_reference,
+        },
     }
 
 
