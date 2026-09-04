@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 // const API_URL = "http://127.0.0.1:8000";
@@ -6,6 +6,7 @@ import "./App.css";
 const API_URL = "";
 
 function App() {
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [darkMode, setDarkMode] = useState(false);
   const [feeling, setFeeling] = useState("");
   const [response, setResponse] = useState("");
@@ -13,6 +14,29 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isResetting, setIsResetting] = useState(false);
+
+  // ============================================================
+  // ANALYTICS — SESSION START
+  // ============================================================
+
+  useEffect(() => {
+    fetch(`${API_URL}/analytics`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "session_started",
+        session_id: sessionId,
+      }),
+    }).catch((error) => {
+      console.error("Analytics error:", error);
+    });
+  }, [sessionId]);
+
+  // ============================================================
+  // FIND ANSWER
+  // ============================================================
 
   const findAnswer = async () => {
     if (!feeling.trim()) {
@@ -55,12 +79,20 @@ function App() {
     }
   };
 
+  // ============================================================
+  // KEYBOARD HANDLER
+  // ============================================================
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       findAnswer();
     }
   };
+
+  // ============================================================
+  // BEGIN AGAIN
+  // ============================================================
 
   const beginAgain = () => {
     setIsResetting(true);
@@ -73,6 +105,10 @@ function App() {
       setIsResetting(false);
     }, 700);
   };
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   return (
     <main className={`landing-page ${darkMode ? "dark-mode" : ""}`}>
@@ -104,12 +140,15 @@ function App() {
           </button>
 
         </div>
+
         {/* Brand */}
+
         <div className="cross">✝</div>
 
         <p className="brand">BIBLE ANSWERS</p>
 
         {/* Hero */}
+
         <h1>
           What is on
           <br />
@@ -123,11 +162,14 @@ function App() {
         </p>
 
         {/* Input */}
+
         <div className="answer-box">
 
           <div className="textarea-wrapper">
+
             <textarea
-              placeholder="Tell us what's on your heart… e.g., I feel anxious about my future." rows="4"
+              placeholder="Tell us what's on your heart… e.g., I feel anxious about my future."
+              rows="4"
               value={feeling}
               maxLength={500}
               onChange={(event) => {
@@ -141,6 +183,7 @@ function App() {
             <div className="character-count">
               {feeling.length} / 500
             </div>
+
           </div>
 
           {!response && (
@@ -152,12 +195,15 @@ function App() {
               {loading ? "Finding..." : "Find an Answer"}
             </button>
           )}
+
         </div>
 
         {/* Error */}
+
         {error && <p className="error">{error}</p>}
 
         {/* Response */}
+
         {response && (
           <div className={`response ${isResetting ? "resetting" : ""}`}>
 
@@ -192,6 +238,7 @@ function App() {
         )}
 
         {/* Footer Verse */}
+
         <div className={`verse ${isResetting ? "resetting" : ""}`}>
           <p>
             "Your word is a lamp for my feet, a light on my path."

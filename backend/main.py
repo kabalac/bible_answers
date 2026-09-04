@@ -9,6 +9,7 @@ from pydantic import BaseModel, field_validator
 from services.bible_search import BibleSearch
 from services.llm_service import LLMService
 
+from analytics import init_analytics_db
 
 
 
@@ -57,9 +58,10 @@ app.add_middleware(
 # SERVICES
 # ============================================================
 
+init_analytics_db()
+
 bible_search = BibleSearch()
 llm = LLMService()
-
 
 # ============================================================
 # REQUEST MODEL
