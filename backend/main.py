@@ -89,6 +89,7 @@ class AnalyticsEvent(BaseModel):
     device_type: str | None = None
     category: str | None = None
     scripture_reference: str | None = None
+    feedback: str | None = None
 
 
 # ============================================================
@@ -249,6 +250,7 @@ def record_analytics(event: AnalyticsEvent):
         device_type=event.device_type,
         category=event.category,
         scripture_reference=event.scripture_reference,
+        feedback=event.feedback,
     )
 
     return {"status": "ok"}

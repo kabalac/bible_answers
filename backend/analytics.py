@@ -14,18 +14,25 @@ def init_analytics_db():
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS analytics_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event TEXT NOT NULL,
-                timestamp TEXT NOT NULL,
-                session_id TEXT,
-                device_type TEXT,
-                category TEXT,
-                scripture_reference TEXT,
-                response_time_ms INTEGER
-            )
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    session_id TEXT,
+    device_type TEXT,
+    category TEXT,
+    scripture_reference TEXT,
+    response_time_ms INTEGER,
+    feedback TEXT
+)
             """
         )
-
+# Add feedback column to existing databases if it doesn't exist
+        try:
+            connection.execute(
+                "ALTER TABLE analytics_events ADD COLUMN feedback TEXT"
+            )
+        except sqlite3.OperationalError:
+            pass
         connection.commit()
 
 
@@ -36,30 +43,33 @@ def track_event(
     category=None,
     scripture_reference=None,
     response_time_ms=None,
+    feedback=None,
 ):
     with sqlite3.connect(ANALYTICS_DB) as connection:
         connection.execute(
-            """
-            INSERT INTO analytics_events (
-                event,
-                timestamp,
-                session_id,
-                device_type,
-                category,
-                scripture_reference,
-                response_time_ms
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                event,
-                datetime.now(timezone.utc).isoformat(),
-                session_id,
-                device_type,
-                category,
-                scripture_reference,
-                response_time_ms,
-            ),
-        )
+    """
+    INSERT INTO analytics_events (
+        event,
+        timestamp,
+        session_id,
+        device_type,
+        category,
+        scripture_reference,
+        response_time_ms,
+        feedback
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """,
+    (
+        event,
+        datetime.now(timezone.utc).isoformat(),
+        session_id,
+        device_type,
+        category,
+        scripture_reference,
+        response_time_ms,
+        feedback,
+    ),
+)
 
         connection.commit()

@@ -6,14 +6,7 @@ import "./App.css";
 const API_URL = "";
 
 function App() {
-  const generateSessionId = () => {
-    if (crypto.randomUUID) {
-      return crypto.randomUUID();
-    }
-
-    return "session-" + Date.now() + "-" + Math.random().toString(36).substring(2, 10);
-  };
-  const [sessionId] = useState(generateSessionId);
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [darkMode, setDarkMode] = useState(false);
   const [feeling, setFeeling] = useState("");
   const [response, setResponse] = useState("");
@@ -479,28 +472,24 @@ function App() {
             <span>Find comfort, wisdom, and guidance in Scripture.</span>
           </div>
 
-          <nav className="footer-links" aria-label="Footer navigation">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/scripture-source">Scripture Source</a>
+          <div className="footer-links">
+            <button type="button">Privacy</button>
+            <button type="button">Terms</button>
+            <button type="button">Scripture Source</button>
+            <button type="button">Open Source</button>
+
             <a
-              href="https://github.com/kabalac/bible-answers"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:karthibala414@gmail.com?subject=Bible%20Answers%20Beta%20Feedback"
+              className="footer-feedback"
             >
-              Open Source
+              Feedback
             </a>
-          </nav>
+          </div>
 
           <div className="footer-meta">
             <span>© 2026 Bible Answers · Beta</span>
             <span>Developed by Karthi Balasundaram</span>
-            <a
-              href="mailto:YOUR_EMAIL@example.com?subject=Bible%20Answers%20Beta%20Feedback"
-              className="footer-feedback"
-            >
-              Your feedback helps us improve.
-            </a>
+            <span>Your feedback helps us improve.</span>
           </div>
         </footer>
 

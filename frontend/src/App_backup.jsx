@@ -6,14 +6,7 @@ import "./App.css";
 const API_URL = "";
 
 function App() {
-  const generateSessionId = () => {
-    if (crypto.randomUUID) {
-      return crypto.randomUUID();
-    }
-
-    return "session-" + Date.now() + "-" + Math.random().toString(36).substring(2, 10);
-  };
-  const [sessionId] = useState(generateSessionId);
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [darkMode, setDarkMode] = useState(false);
   const [feeling, setFeeling] = useState("");
   const [response, setResponse] = useState("");
@@ -470,39 +463,6 @@ function App() {
             — Psalm 119:105
           </span>
         </div>
-
-        {/* Site Footer */}
-
-        <footer className="site-footer">
-          <div className="footer-brand">
-            <strong>Bible Answers</strong>
-            <span>Find comfort, wisdom, and guidance in Scripture.</span>
-          </div>
-
-          <nav className="footer-links" aria-label="Footer navigation">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/scripture-source">Scripture Source</a>
-            <a
-              href="https://github.com/kabalac/bible-answers"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open Source
-            </a>
-          </nav>
-
-          <div className="footer-meta">
-            <span>© 2026 Bible Answers · Beta</span>
-            <span>Developed by Karthi Balasundaram</span>
-            <a
-              href="mailto:YOUR_EMAIL@example.com?subject=Bible%20Answers%20Beta%20Feedback"
-              className="footer-feedback"
-            >
-              Your feedback helps us improve.
-            </a>
-          </div>
-        </footer>
 
       </section>
     </main>
