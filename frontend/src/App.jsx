@@ -480,11 +480,33 @@ function App() {
           </div>
 
           <nav className="footer-links" aria-label="Footer navigation">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/scripture-source">Scripture Source</a>
             <a
-              href="https://github.com/kabalac/bible-answers"
+              className="footer-link"
+              href="/privacy.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Privacy
+            </a>
+            <a
+              className="footer-link"
+              href="/terms.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Terms
+            </a>
+            <a
+              className="footer-link"
+              href="/scripture-source.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Scripture Source
+            </a>
+            <a
+              className="footer-link"
+              href="https://github.com/kabalac/bible_answers"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -493,10 +515,10 @@ function App() {
           </nav>
 
           <div className="footer-meta">
-            <span>© 2026 Bible Answers · Beta</span>
+            <span>© 2026 Bible Answers • Beta • v0.1.0</span>
             <span>Developed by Karthi Balasundaram</span>
             <a
-              href="mailto:YOUR_EMAIL@example.com?subject=Bible%20Answers%20Beta%20Feedback"
+              href="mailto:karthibala414@gmail.com?subject=Bible%20Answers%20Beta%20Feedback"
               className="footer-feedback"
             >
               Your feedback helps us improve.
