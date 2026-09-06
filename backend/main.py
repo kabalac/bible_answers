@@ -1,16 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+import os
+import secrets
+import sqlite3
 
 from pydantic import BaseModel, field_validator
 
 from services.bible_search import BibleSearch
 from services.llm_service import LLMService
 from analytics import init_analytics_db, track_event
-
-from analytics import init_analytics_db
 
 
 
@@ -28,6 +29,10 @@ app = FastAPI(title="Bible Answers API")
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+# Production analytics database and protected read key.
+ANALYTICS_DB = BASE_DIR / "data" / "analytics.db"
+ANALYTICS_ADMIN_KEY = os.getenv("ANALYTICS_ADMIN_KEY")
 
 if FRONTEND_DIST.exists():
     app.mount(
@@ -276,6 +281,120 @@ def record_analytics(event: AnalyticsEvent):
     )
 
     return {"status": "ok"}
+
+
+@app.get("/analytics/summary")
+def analytics_summary(x_analytics_key: str | None = Header(default=None)):
+    """
+    Return aggregated production analytics.
+
+    This endpoint never exposes individual events, session IDs, or
+    user-entered questions. Access requires ANALYTICS_ADMIN_KEY.
+    """
+
+    if not ANALYTICS_ADMIN_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Analytics summary is not configured."
+        )
+
+    if not x_analytics_key or not secrets.compare_digest(
+        x_analytics_key,
+        ANALYTICS_ADMIN_KEY
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid analytics key."
+        )
+
+    if not ANALYTICS_DB.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Analytics database is not available."
+        )
+
+    try:
+        with sqlite3.connect(ANALYTICS_DB) as connection:
+            connection.row_factory = sqlite3.Row
+
+            totals = connection.execute(
+                """
+                SELECT
+                    COUNT(*) AS total_events,
+                    COUNT(
+                        DISTINCT CASE
+                            WHEN session_id IS NOT NULL
+                            AND session_id != ''
+                            THEN session_id
+                        END
+                    ) AS unique_sessions,
+                    SUM(
+                        CASE WHEN event = 'answer_requested'
+                        THEN 1 ELSE 0 END
+                    ) AS answers_requested,
+                    SUM(
+                        CASE WHEN event = 'answer_completed'
+                        THEN 1 ELSE 0 END
+                    ) AS answers_completed,
+                    AVG(
+                        CASE
+                            WHEN event = 'answer_completed'
+                            AND response_time_ms IS NOT NULL
+                            THEN response_time_ms
+                        END
+                    ) AS average_response_time_ms
+                FROM analytics_events
+                """
+            ).fetchone()
+
+            event_rows = connection.execute(
+                """
+                SELECT event, COUNT(*) AS count
+                FROM analytics_events
+                GROUP BY event
+                ORDER BY count DESC
+                """
+            ).fetchall()
+
+            device_rows = connection.execute(
+                """
+                SELECT
+                    COALESCE(device_type, 'unknown') AS device_type,
+                    COUNT(*) AS count
+                FROM analytics_events
+                WHERE device_type IS NOT NULL
+                GROUP BY device_type
+                ORDER BY count DESC
+                """
+            ).fetchall()
+
+        return {
+            "total_events": totals["total_events"] or 0,
+            "unique_sessions": totals["unique_sessions"] or 0,
+            "answers_requested": totals["answers_requested"] or 0,
+            "answers_completed": totals["answers_completed"] or 0,
+            "average_response_time_ms": (
+                round(totals["average_response_time_ms"], 2)
+                if totals["average_response_time_ms"] is not None
+                else None
+            ),
+            "events": {
+                row["event"]: row["count"]
+                for row in event_rows
+            },
+            "devices": {
+                row["device_type"]: row["count"]
+                for row in device_rows
+            },
+        }
+
+    except sqlite3.Error as error:
+        print(f"Analytics summary error: {error}")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to read analytics."
+        )
+
 
 # ============================================================
 # MAIN ANSWER ENDPOINT
